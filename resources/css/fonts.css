@@ -1,0 +1,119 @@
+@font-face {
+    font-family: 'Archivo Narrow';
+    src: url('../../public/fonts/ArchivoNarrow-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Archivo Narrow';
+    src: url('../../public/fonts/ArchivoNarrow-Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Archivo Narrow';
+    src: url('../../public/fonts/ArchivoNarrow-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Archivo Narrow';
+    src: url('../../public/fonts/ArchivoNarrow-MediumItalic.ttf') format('truetype');
+    font-weight: 500;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Archivo Narrow';
+    src: url('../../public/fonts/ArchivoNarrow-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Archivo Narrow';
+    src: url('../../public/fonts/ArchivoNarrow-SemiBoldItalic.ttf') format('truetype');
+    font-weight: 600;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Archivo Narrow';
+    src: url('../../public/fonts/ArchivoNarrow-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Archivo Narrow';
+    src: url('../../public/fonts/ArchivoNarrow-BoldItalic.ttf') format('truetype');
+    font-weight: 700;
+    font-style: italic;
+}
+
+:root {
+    /* Couleurs principales */
+    --iotiz-blue: #008caa;      /* C:100 M:12 J:28 N:5 */
+    --iotiz-yellow: #f9ae00;    /* C:0 M:36 J:100 N:0 */
+    --iotiz-teal: #00aead;      /* C:78 M:0 J:38 N:0 */
+
+    /* Couleurs secondaires */
+    --iotiz-green: #95c11f;     /* C:50 M:0 J:100 N:0 */
+    --iotiz-cyan: #00b4ce;      /* C:75 M:0 J:19 N:0 */
+    --iotiz-red: #e83943;       /* C:0 M:88 J:68 N:0 */
+
+    /* Couleur texte */
+    --iotiz-text: #333333;
+}
+
+/* Déclarations des fonts comme avant */
+
+/* Styles globaux */
+body {
+    font-family: 'Archivo Narrow', system-ui, sans-serif;
+    color: var(--iotiz-text);
+}
+
+.navbar {
+    background-color: white;
+    border-bottom: 3px solid var(--iotiz-blue);
+}
+
+.navbar-brand {
+    color: var(--iotiz-blue);
+    font-weight: 600;
+}
+
+.nav-link {
+    color: var(--iotiz-text);
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    color: var(--iotiz-blue);
+}
+
+.btn-primary {
+    background-color: var(--iotiz-blue);
+    border-color: var(--iotiz-blue);
+}
+
+.btn-secondary {
+    background-color: var(--iotiz-teal);
+    border-color: var(--iotiz-teal);
+}
+
+.alert-success {
+    border-color: var(--iotiz-green);
+}
+
+.alert-danger {
+    border-color: var(--iotiz-red);
+}
+
+.progress-bar {
+    background-color: var(--iotiz-blue);
+}

@@ -564,15 +564,21 @@
 
     // Gestion des services
     function loadSiteServices(siteId) {
-        showLoader(); // Afficher l'indicateur de chargement
+        showLoader();
         const url = `/clients/${clientId}/sites/${siteId}/services`;
 
-        // Réinitialiser les lignes téléphoniques avant le chargement
-        phoneLines = []; // Important: réinitialiser le tableau global
+        // Réinitialiser les tableaux avant le chargement
+        phoneLines = [];
+        mobileLines = []; // Important: réinitialiser aussi les lignes mobiles
 
         const phoneLinesBody = document.getElementById('phoneLinesBody');
         if (phoneLinesBody) {
             phoneLinesBody.innerHTML = '';
+        }
+
+        const mobileLinesBody = document.getElementById('mobileLinesBody');
+        if (mobileLinesBody) {
+            mobileLinesBody.innerHTML = '';
         }
 
         const phoneLinesTable = document.getElementById('phoneLinesTable');
@@ -595,16 +601,15 @@
             .then(data => {
                 console.log('Services chargés:', data);
                 updateFormFields(data.data || data);
-                hideLoader(); // Masquer l'indicateur de chargement
+                hideLoader();
             })
             .catch(error => {
                 console.error('Erreur lors du chargement des services:', error);
-                hideLoader(); // Masquer l'indicateur de chargement même en cas d'erreur
+                hideLoader();
 
-                // Affichage d'erreur simple
                 const serviceContainer = document.querySelector('#telephonyHostedSection .accordion-body');
                 if (serviceContainer) {
-                    serviceContainer.innerHTML = `<div class="alert alert-danger">Erreur lors du chargement des services</div>`;
+                    serviceContainer.innerHTML = `<div class="alert alert-danger">Erreur lors du chargement des services.</div>`;
                 }
             });
     }
@@ -612,71 +617,88 @@
     function updateFormFields(service) {
         // Vérification si le service existe
         if (!service) {
-            console.warn('Aucune donnée de service reçue');
+            console.warn('Aucun service à afficher');
             return;
         }
 
         console.log('Mise à jour des champs avec:', service);
 
-        // Réinitialiser le tableau global phoneLines
+        // Réinitialiser les tableaux globaux
         phoneLines = [];
+        mobileLines = [];
 
         // --- Section Téléphonie hébergée ---
         const sviCheckbox = document.getElementById('svi');
-        if (sviCheckbox) {
-            sviCheckbox.checked = service.configuration?.svi || false;
+        if (sviCheckbox && service.configuration && service.configuration.svi !== undefined) {
+            sviCheckbox.checked = Boolean(service.configuration.svi);
         }
 
         // Nombre de canaux/lignes
         const channelCount = document.getElementById('channelCount');
-        if (channelCount) {
-            channelCount.value = service.configuration?.channel_count || '';
+        if (channelCount && service.configuration && service.configuration.channel_count !== undefined) {
+            channelCount.value = service.configuration.channel_count;
         }
 
         // --- Section Lignes téléphoniques ---
         if (service.lignes && Array.isArray(service.lignes)) {
-            console.log(`Chargement de ${service.lignes.length} lignes téléphoniques du serveur`);
+            console.log(`Chargement de ${service.lignes.length} lignes téléphoniques`);
 
-            // Remplir le tableau global phoneLines avec les données du serveur
             phoneLines = service.lignes.map(line => ({
-                id: Date.now() + Math.floor(Math.random() * 1000), // ID unique
+                id: Date.now() + Math.floor(Math.random() * 1000),
                 lastName: line.nom || '',
                 firstName: line.prenom || '',
                 phoneNumber: line.numero || '',
                 operator: line.operateur || '',
                 dataAmount: line.data || '',
-                internationalOption: Boolean(line.international),
+                internationalOption: line.international || false,
                 simCardNumber: line.sim || ''
             }));
 
-            // Afficher le tableau des lignes
-            const phoneLinesTable = document.getElementById('phoneLinesTable');
-            if (phoneLinesTable) {
-                phoneLinesTable.style.display = phoneLines.length > 0 ? 'block' : 'none';
-            }
-
-            // Mettre à jour l'affichage du tableau
             updatePhoneLinesTable();
+        }
+
+        // --- Section Lignes mobiles ---
+        if (service.lignes_mobiles && Array.isArray(service.lignes_mobiles)) {
+            console.log(`Chargement de ${service.lignes_mobiles.length} lignes mobiles du serveur:`, service.lignes_mobiles);
+
+            mobileLines = service.lignes_mobiles.map(line => ({
+                id: Date.now() + Math.floor(Math.random() * 1000), // ID unique pour manipulation côté client
+                numero: line.numero || '',
+                forfait: line.forfait || '',
+                sim: line.sim || '',
+                date_activation: line.date_activation || ''
+            }));
+
+            // S'assurer que la section mobile est initialisée avant la mise à jour
+            setupMobileSection();
+
+            // Mise à jour de l'affichage du tableau
+            updateMobileLinesTable();
+        } else {
+            console.log('Aucune ligne mobile à charger ou format invalide:', service.lignes_mobiles);
+            mobileLines = [];
+            setupMobileSection(); // Initialiser quand même la section
+            updateMobileLinesTable();
         }
 
         // --- Section Cloud ---
         const cloudCheckbox = document.getElementById('cloud');
-        if (cloudCheckbox) {
-            cloudCheckbox.checked = service.configuration?.cloud || false;
+        if (cloudCheckbox && service.configuration && service.configuration.cloud !== undefined) {
+            cloudCheckbox.checked = Boolean(service.configuration.cloud);
         }
 
         // --- Section Lien d'accès ---
         const accessTypeSelect = document.getElementById('accessType');
-        if (accessTypeSelect) {
-            accessTypeSelect.value = service.configuration?.access_type || '';
+        if (accessTypeSelect && service.configuration && service.configuration.access_type !== undefined) {
+            accessTypeSelect.value = service.configuration.access_type;
         }
 
         const accessDebit = document.getElementById('accessDebit');
-        if (accessDebit) {
-            accessDebit.value = service.configuration?.debit || '';
+        if (accessDebit && service.configuration && service.configuration.debit !== undefined) {
+            accessDebit.value = service.configuration.debit;
         }
 
-        console.log(`Initialisation du tableau phoneLines avec ${phoneLines.length} lignes`);
+        console.log(`Initialisation terminée: ${phoneLines.length} lignes téléphoniques, ${mobileLines.length} lignes mobiles`);
     }
 
     function updatePhoneLines(phoneLines) {
@@ -852,12 +874,16 @@
     }
 
     function saveServices() {
+        console.log('Début de saveServices()');
         showLoader();
 
-        // Ajustons automatiquement le nombre de canaux en fonction du nombre de lignes
-        const channelCountElement = document.getElementById('channelCount');
-        if (channelCountElement && phoneLines.length > 0) {
-            channelCountElement.value = phoneLines.length;
+        // Vérification de l'état des lignes mobiles
+        console.log('État actuel de mobileLines:', mobileLines);
+
+        // Initialisation si nécessaire
+        if (!Array.isArray(mobileLines)) {
+            console.warn('mobileLines n\'est pas un tableau, initialisation...');
+            mobileLines = [];
         }
 
         const serviceData = {
@@ -868,13 +894,7 @@
                 access_type: document.getElementById('accessType')?.value || 'Aucun',
                 debit: document.getElementById('accessDebit')?.value || 'Aucun'
             },
-            lignes: []
-        };
-
-        // Toujours inclure les lignes téléphoniques s'il y en a
-        if (phoneLines.length > 0) {
-            console.log(`Envoi de ${phoneLines.length} lignes au serveur:`, phoneLines);
-            serviceData.lignes = phoneLines.map(line => ({
+            lignes: phoneLines.map(line => ({
                 nom: line.lastName || '',
                 prenom: line.firstName || '',
                 numero: line.phoneNumber || '',
@@ -882,38 +902,63 @@
                 data: line.dataAmount || '',
                 international: line.internationalOption || false,
                 sim: line.simCardNumber || ''
-            }));
-        }
+            })),
+            lignes_mobiles: mobileLines.map(line => ({
+                numero: line.numero || '',
+                forfait: line.forfait || '',
+                sim: line.sim || '',
+                date_activation: line.date_activation || ''
+            }))
+        };
 
-        console.log('Données envoyées au serveur:', serviceData);
+        console.log('Données à envoyer:', serviceData);
 
         return fetch(`/clients/${clientId}/sites/${activeSiteId}/services`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
             body: JSON.stringify(serviceData)
         })
             .then(response => {
+                console.log('Réponse reçue, status:', response.status);
+                hideLoader();
+
                 if (!response.ok) {
-                    return response.text().then(text => {
-                        console.error('Erreur du serveur:', text);
+                    return response.json().then(err => {
+                        console.error('Erreur serveur:', err);
                         throw new Error('Erreur serveur');
                     });
                 }
                 return response.json();
             })
             .then(data => {
-                hideLoader();
-                showToast('Services enregistrés avec succès', 'success');
+                console.log('Services sauvegardés avec succès:', data);
+                const toast = document.getElementById('successToast');
+                if (toast) {
+                    const bsToast = new bootstrap.Toast(toast);
+                    bsToast.show();
+                } else {
+                    // Alternative si le toast n'existe pas
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Succès',
+                        text: 'Services sauvegardés avec succès',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
                 return data;
             })
             .catch(error => {
-                hideLoader();
                 console.error('Erreur:', error);
-                showToast('Une erreur est survenue lors de la sauvegarde', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: 'Erreur lors de la sauvegarde des services.',
+                    confirmButtonText: 'OK'
+                });
                 throw error;
             });
     }
@@ -1490,16 +1535,321 @@
         });
     }
 
+    // Variable globale pour stocker les lignes mobiles
+    let mobileLines = [];
+
+    // Fonction pour initialiser la section mobile
+    function setupMobileSection() {
+        console.log('Initialisation de la section mobile');
+        const section = document.getElementById('mobileSection');
+        if (!section) {
+            console.warn('Section mobile non trouvée');
+            return;
+        }
+
+        const accordionBody = section.querySelector('.accordion-body');
+        if (!accordionBody) {
+            console.warn('Corps de l\'accordéon non trouvé');
+            return;
+        }
+
+        // Ne pas réinitialiser si le contenu existe déjà
+        if (accordionBody.querySelector('table')) {
+            console.log('Tableau des lignes mobiles déjà initialisé');
+
+            // Récupérer le bouton existant et attacher l'événement
+            const addMobileLineBtn = document.getElementById('addMobileLineBtn');
+            if (addMobileLineBtn) {
+                addMobileLineBtn.removeEventListener('click', openMobileLineModal);
+                addMobileLineBtn.addEventListener('click', openMobileLineModal);
+            }
+
+            return;
+        }
+
+        // Créer la structure complète du tableau
+        accordionBody.innerHTML = `
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>Numéro</th>
+                        <th>Forfait</th>
+                        <th>Carte SIM</th>
+                        <th>Date d'activation</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="mobileLinesBody"></tbody>
+            </table>
+        </div>
+
+        <div class="text-end mt-3">
+            <button type="button" class="btn btn-primary btn-sm" id="addMobileLineBtn">
+                <i class="fas fa-plus me-1"></i> Ajouter une ligne
+            </button>
+        </div>
+    `;
+
+        // Ajouter l'événement au bouton
+        const addMobileLineBtn = document.getElementById('addMobileLineBtn');
+        if (addMobileLineBtn) {
+            addMobileLineBtn.addEventListener('click', openMobileLineModal);
+        }
+
+        // Créer la modal pour l'ajout de ligne
+        setupMobileLineModal();
+
+        // Mettre à jour l'affichage du tableau avec les données existantes
+        updateMobileLinesTable();
+    }
+
+    function updateMobileLinesTable() {
+        console.log('Mise à jour du tableau des lignes mobiles', mobileLines);
+        const tbody = document.getElementById('mobileLinesBody');
+        if (!tbody) {
+            console.error("Élément 'mobileLinesBody' non trouvé!");
+            return;
+        }
+
+        tbody.innerHTML = '';
+
+        if (!Array.isArray(mobileLines) || mobileLines.length === 0) {
+            // Affichage d'une ligne vide si aucune donnée
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center">Aucune ligne mobile ajoutée</td></tr>`;
+            return;
+        }
+
+        // Création des lignes du tableau
+        mobileLines.forEach(line => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+            <td>${line.numero || ''}</td>
+            <td>${line.forfait || ''}</td>
+            <td>${line.sim || ''}</td>
+            <td>${line.date_activation || ''}</td>
+            <td>
+                <button class="btn btn-xs text-danger delete-mobile-line" data-id="${line.id}">
+                    <i class="fas fa-trash fa-2xs"></i>
+                </button>
+            </td>
+        `;
+            tbody.appendChild(tr);
+        });
+
+        // Ajout des gestionnaires d'événements pour les boutons de suppression
+        document.querySelectorAll('.delete-mobile-line').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = parseInt(this.getAttribute('data-id'));
+                mobileLines = mobileLines.filter(line => line.id !== id);
+                updateMobileLinesTable();
+                // Sauvegarder les modifications après suppression
+                saveServices();
+            });
+        });
+    }
+
+    function setupMobileLineModal() {
+        // Supprimer les modals existantes pour éviter les doublons
+        document.querySelectorAll('#addMobileLineModal').forEach(modal => {
+            modal.remove();
+        });
+
+        console.log('Création du modal pour les lignes mobiles');
+
+        // Créer une nouvelle modal avec les bons champs
+        const modalHTML = `
+    <div class="modal fade" id="addMobileLineModal" tabindex="-1" aria-labelledby="addMobileLineModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMobileLineModalLabel">Ajouter une ligne mobile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="mobileLineForm">
+                        <div class="mb-3">
+                            <label for="mobileNumber" class="form-label">Numéro de téléphone</label>
+                            <input type="text" class="form-control" id="mobileNumber" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="mobileForfait" class="form-label">Forfait</label>
+                            <input type="text" class="form-control" id="mobileForfait">
+                        </div>
+                        <div class="mb-3">
+                            <label for="mobileSim" class="form-label">Numéro carte SIM</label>
+                            <input type="text" class="form-control" id="mobileSim">
+                        </div>
+                        <div class="mb-3">
+                            <label for="mobileActivationDate" class="form-label">Date d'activation</label>
+                            <input type="date" class="form-control" id="mobileActivationDate">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="saveMobileLine">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </div>`;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Attacher l'événement au bouton de sauvegarde
+        const saveMobileLineBtn = document.getElementById('saveMobileLine');
+        if (saveMobileLineBtn) {
+            saveMobileLineBtn.removeEventListener('click', addMobileLine); // Éviter les doublons
+            saveMobileLineBtn.addEventListener('click', addMobileLine);
+        } else {
+            console.error("Bouton 'saveMobileLine' non trouvé!");
+        }
+    }
+
+    function openMobileLineModal() {
+        console.log('Ouverture de la modal pour ligne mobile');
+
+        // S'assurer que la modal existe
+        setupMobileLineModal();
+
+        // Ouvrir avec l'API Bootstrap
+        const modalElement = document.getElementById('addMobileLineModal');
+        if (modalElement && typeof bootstrap !== 'undefined') {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        } else {
+            console.error("Impossible d'ouvrir la modal: élément non trouvé ou Bootstrap non disponible");
+        }
+    }
+
+    function addMobileLine() {
+        // Récupération des valeurs du formulaire
+        const numero = document.getElementById('mobileNumber').value;
+        const forfait = document.getElementById('mobileForfait').value;
+        const sim = document.getElementById('mobileSim').value;
+        const date_activation = document.getElementById('mobileActivationDate').value;
+
+        // Création d'un objet représentant la ligne mobile
+        const newLine = {
+            id: Date.now(), // Identifiant unique pour manipulation côté client
+            numero,
+            forfait,
+            sim,
+            date_activation
+        };
+
+        // Assurer que mobileLines est un tableau
+        if (!Array.isArray(mobileLines)) {
+            mobileLines = [];
+        }
+
+        // Ajouter au tableau
+        mobileLines.push(newLine);
+
+        // Mise à jour de l'affichage
+        updateMobileLinesTable();
+
+        // Fermer la modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addMobileLineModal'));
+        if (modal) {
+            modal.hide();
+        }
+
+        // Réinitialiser le formulaire
+        document.getElementById('mobileLineForm').reset();
+
+        // IMPORTANT : Sauvegarder les modifications sur le serveur
+        saveServices();
+    }
+
+    // Fonction pour s'assurer que la modal de ligne téléphonique existe sans la dupliquer
+    function ensurePhoneLineModal() {
+        // Vérifier si la modal existe déjà
+        if (!document.getElementById('addPhoneLineModal')) {
+            // Créer uniquement si elle n'existe pas
+            const modalHTML = `
+        <div class="modal fade" id="addPhoneLineModal" tabindex="-1" aria-labelledby="addPhoneLineModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addPhoneLineModalLabel">Ajouter une ligne téléphonique</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="phoneLineForm">
+                            <!-- Vos champs de formulaire existants -->
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-primary btn-sm" id="savePhoneLine">Enregistrer</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // S'assurer que l'événement est attaché une seule fois
+        document.getElementById('savePhoneLine').removeEventListener('click', addPhoneLine);
+        document.getElementById('savePhoneLine').addEventListener('click', addPhoneLine);
+    }
+    function ensureMobileLineModal() {
+        if (!document.getElementById('addMobileLineModal')) {
+            const modalHTML = `
+        <div class="modal fade" id="addMobileLineModal" tabindex="-1" aria-labelledby="addMobileLineModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addMobileLineModalLabel">Ajouter une ligne mobile</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="mobileLineForm">
+                            <!-- Champs du formulaire pour ligne mobile -->
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-primary btn-sm" id="saveMobileLine">Enregistrer</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        document.getElementById('saveMobileLine').removeEventListener('click', addMobileLine);
+        document.getElementById('saveMobileLine').addEventListener('click', addMobileLine);
+    }
+
+
     // Initialisation au chargement de la page
     document.addEventListener('DOMContentLoaded', function() {
         // Initialiser la section téléphonie hébergée
         updateTelephonyHostedSection();
 
-        // Mettre à jour l'affichage du tableau
-        updatePhoneLinesTable();
+        // Initialiser la section mobile
+        setupMobileSection();
 
-        // Autres initialisations existantes...
+        // Définir explicitement la variable mobileLines si elle n'existe pas
+        if (typeof mobileLines === 'undefined') {
+            window.mobileLines = [];
+        }
+
+        // S'assurer que jQuery et Bootstrap sont chargés
+        if (typeof $ !== 'undefined' && typeof bootstrap !== 'undefined') {
+            console.log('jQuery et Bootstrap sont disponibles');
+        } else {
+            console.error('jQuery ou Bootstrap manquants!');
+        }
+
+        // Charger les données du site actif
+        loadSiteServices(activeSiteId);
     });
+
 
 
 </script>

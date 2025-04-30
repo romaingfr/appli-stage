@@ -208,6 +208,12 @@ class SiteController extends Controller
                 'lignes.*.data' => 'nullable|string',
                 'lignes.*.international' => 'boolean',
                 'lignes.*.sim' => 'nullable|string',
+                // Règles pour lignes_mobiles
+                'lignes_mobiles' => 'present|array',
+                'lignes_mobiles.*.numero' => 'nullable|string',
+                'lignes_mobiles.*.forfait' => 'nullable|string',
+                'lignes_mobiles.*.sim' => 'nullable|string',
+                'lignes_mobiles.*.date_activation' => 'nullable|date',
             ]);
 
             // Récupération du site
@@ -228,7 +234,8 @@ class SiteController extends Controller
                 [], // Conditions (vide pour associer au site)
                 [
                     'configuration' => $validatedData['configuration'],
-                    'lignes' => $validatedData['lignes']
+                    'lignes' => $validatedData['lignes'],
+                    'lignes_mobiles' => $validatedData['lignes_mobiles'] ?? []
                 ]
             );
             DB::commit();

@@ -43,12 +43,6 @@ class ServiceController extends Controller
 
     public function storePrincipal(Request $request, Client $client)
     {
-        Log::info('Début updateServices', [
-            'client_id' => $client->id,
-            'site' => 'principal',
-            'request_data' => $request->all()
-        ]);
-
         try {
             $validatedData = $request->validate([
                 'configuration' => 'required|array',
@@ -57,18 +51,28 @@ class ServiceController extends Controller
                 'configuration.cloud' => 'required|boolean',
                 'configuration.access_type' => 'required|string',
                 'configuration.debit' => 'required|string',
-                'lignes' => 'array'
+                'lignes' => 'present|array',
+                'lignes.*.nom' => 'nullable|string',
+                'lignes.*.prenom' => 'nullable|string',
+                'lignes.*.numero' => 'nullable|string',
+                'lignes.*.mobile' => 'nullable|string',
+                'lignes.*.marque' => 'nullable|string',
+                'lignes.*.type_terminal' => 'nullable|string',
+                'lignes.*.numero_serie' => 'nullable|string',
+                'lignes.*.operateur' => 'nullable|string',
+                'lignes.*.data' => 'nullable|string',
+                'lignes.*.international' => 'boolean',
+                'lignes.*.option_facultative' => 'boolean',
+                'lignes.*.sim' => 'nullable|string',
             ]);
 
             DB::beginTransaction();
 
-            // Modifier les méthodes storePrincipal et update :
             $service = Service::updateOrCreate(
-                ['client_id' => $client->id, 'site_id' => null], // ou site_id => $siteId dans update()
+                ['client_id' => $client->id, 'site_id' => null],
                 [
                     'configuration' => $validatedData['configuration'],
                     'lignes' => $validatedData['lignes'] ?? [],
-                    'lignes_mobiles' => $validatedData['lignes_mobiles'] ?? []
                 ]
             );
 
@@ -87,7 +91,9 @@ class ServiceController extends Controller
             ]);
 
             return response()->json([
-                'message' => 'Erreur lors de la mise à jour des services'
+                'success' => false,
+                'message' => 'Erreur lors de la mise à jour des services',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
@@ -95,7 +101,6 @@ class ServiceController extends Controller
     public function update(Request $request, Client $client, $siteId)
     {
         try {
-            // Assouplir la validation pour permettre l'envoi de lignes avec structure JavaScript
             $validatedData = $request->validate([
                 'client_id' => 'required|exists:clients,id',
                 'site_id' => 'required',
@@ -106,17 +111,22 @@ class ServiceController extends Controller
                 'configuration.access_type' => 'required|string',
                 'configuration.debit' => 'required|string',
                 'lignes' => 'present|array',
-                'lignes_mobiles' => 'present|array',
+                'lignes.*.nom' => 'nullable|string',
+                'lignes.*.prenom' => 'nullable|string',
+                'lignes.*.numero' => 'nullable|string',
+                'lignes.*.mobile' => 'nullable|string',
+                'lignes.*.marque' => 'nullable|string',
+                'lignes.*.type_terminal' => 'nullable|string',
+                'lignes.*.numero_serie' => 'nullable|string',
+                'lignes.*.operateur' => 'nullable|string',
+                'lignes.*.data' => 'nullable|string',
+                'lignes.*.international' => 'boolean',
+                'lignes.*.option_facultative' => 'boolean',
+                'lignes.*.sim' => 'nullable|string',
                 'services' => 'present|array',
             ]);
 
             DB::beginTransaction();
-
-            // Loguer les données reçues pour débogage
-            Log::info('Données reçues pour mise à jour service', [
-                'lignes_count' => count($validatedData['lignes'] ?? []),
-                'lignes' => $validatedData['lignes']
-            ]);
 
             $service = Service::updateOrCreate(
                 [
@@ -129,7 +139,6 @@ class ServiceController extends Controller
                     'status' => $request->input('status', 1),
                     'configuration' => $validatedData['configuration'],
                     'lignes' => $validatedData['lignes'] ?? [],
-                    'lignes_mobiles' => $validatedData['lignes_mobiles'] ?? [],
                     'services' => $validatedData['services'] ?? []
                 ]
             );
@@ -158,6 +167,7 @@ class ServiceController extends Controller
             ], 500);
         }
     }
+
     private function validateServiceData(Request $request)
     {
         return $request->validate([

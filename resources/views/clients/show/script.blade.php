@@ -311,12 +311,40 @@
         });
 
         // Attacher les gestionnaires d'événements pour les boutons de suppression
+        // Dans la fonction updatePhoneLinesTable()
         document.querySelectorAll('.delete-phone-line').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = parseInt(this.getAttribute('data-id'));
-                phoneLines = phoneLines.filter(line => line.id !== id);
+            // Supprimer tous les gestionnaires d'événements existants pour éviter les doublons
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+
+            newBtn.addEventListener('click', function(e) {
+                // Empêcher la propagation de l'événement
+                e.stopPropagation();
+
+                // Récupérer l'ID et le convertir en nombre
+                const lineId = parseInt(this.getAttribute('data-id'));
+
+                console.log('Suppression de la ligne ID:', lineId);
+                console.log('phoneLines avant suppression:', JSON.stringify(phoneLines));
+
+                // Vérifier si des lignes ont cet ID
+                const matchingLines = phoneLines.filter(line => parseInt(line.id) === lineId);
+                console.log(`Nombre de lignes avec l'ID ${lineId}:`, matchingLines.length);
+
+                // Filtrer en comparant de façon stricte
+                const newPhoneLines = phoneLines.filter(line => parseInt(line.id) !== lineId);
+
+                console.log('Nombre de lignes supprimées:', phoneLines.length - newPhoneLines.length);
+                console.log('phoneLines après filtrage:', JSON.stringify(newPhoneLines));
+
+                // Mettre à jour la variable globale
+                phoneLines = newPhoneLines;
+
+                // Mettre à jour l'affichage
                 updatePhoneLinesTable();
-                saveServices();
+
+                // Sauvegarder APRÈS avoir mis à jour l'affichage
+                setTimeout(() => saveServices(), 100);
             });
         });
     }
@@ -334,9 +362,12 @@
             return;
         }
 
-        // Créer un nouvel objet ligne
+        // Créer un identifiant unique (ajout d'un nombre aléatoire pour garantir l'unicité)
+        const uniqueId = Date.now() + Math.floor(Math.random() * 1000);
+
+        // Créer un nouvel objet ligne avec ID unique
         const newLine = {
-            id: Date.now(),
+            id: uniqueId,
             lastName: lastName,
             firstName: firstName,
             phoneNumber: phoneNumber,
@@ -354,7 +385,7 @@
         // Ajouter la ligne au tableau
         phoneLines.push(newLine);
 
-        // Mettre à jour l'affichage
+        // Mettre à jour l'affichage et sauvegarder
         updatePhoneLinesTable();
 
         // Fermer la modal correctement
@@ -1010,7 +1041,6 @@
         const serviceData = {
             client_id: clientId,
             site_id: activeSiteId,
-
             configuration: {
                 svi: Boolean(document.getElementById('svi')?.checked),
                 channel_count: phoneLines.length || parseInt(document.getElementById('channelCount')?.value || '0'),
@@ -1019,7 +1049,6 @@
                 debit: document.getElementById('accessDebit')?.value || 'Aucun'
             },
             lignes: phoneLines.map(line => ({
-                id: line.id || Date.now(),
                 nom: line.lastName || '',
                 prenom: line.firstName || '',
                 numero: line.phoneNumber || '',
@@ -1029,11 +1058,11 @@
                 numero_serie: line.serialNumber || '',
                 operateur: line.operator || '',
                 data: line.dataAmount || '',
-                international: Boolean(line.internationalOption),
-                option_facultative: Boolean(line.optionalFeature),
+                international: line.internationalOption || false,
+                option_facultative: line.optionalFeature || false,
                 sim: line.simCardNumber || ''
             })),
-            lignes_mobiles: []
+            lignes_mobiles: [] // Ajouter ce champ pour satisfaire la validation
         };
 
         console.log('Données à envoyer:', serviceData);

@@ -67,7 +67,8 @@ class ServiceController extends Controller
                 ['client_id' => $client->id, 'site_id' => null], // ou site_id => $siteId dans update()
                 [
                     'configuration' => $validatedData['configuration'],
-                    'lignes' => $validatedData['lignes'] ?? []
+                    'lignes' => $validatedData['lignes'] ?? [],
+                    'lignes_mobiles' => $validatedData['lignes_mobiles'] ?? []
                 ]
             );
 
@@ -94,10 +95,28 @@ class ServiceController extends Controller
     public function update(Request $request, Client $client, $siteId)
     {
         try {
-            // Utiliser validateServiceData au lieu de la validation personnalisée incomplète
-            $validatedData = $this->validateServiceData($request);
+            // Assouplir la validation pour permettre l'envoi de lignes avec structure JavaScript
+            $validatedData = $request->validate([
+                'client_id' => 'required|exists:clients,id',
+                'site_id' => 'required',
+                'configuration' => 'required|array',
+                'configuration.svi' => 'required|integer',
+                'configuration.channel_count' => 'required|integer|min:0',
+                'configuration.cloud' => 'required|integer',
+                'configuration.access_type' => 'required|string',
+                'configuration.debit' => 'required|string',
+                'lignes' => 'present|array',
+                'lignes_mobiles' => 'present|array',
+                'services' => 'present|array',
+            ]);
 
             DB::beginTransaction();
+
+            // Loguer les données reçues pour débogage
+            Log::info('Données reçues pour mise à jour service', [
+                'lignes_count' => count($validatedData['lignes'] ?? []),
+                'lignes' => $validatedData['lignes']
+            ]);
 
             $service = Service::updateOrCreate(
                 [
@@ -105,22 +124,21 @@ class ServiceController extends Controller
                     'client_id' => $client->id
                 ],
                 [
-                    'nom' => $validatedData['nom'] ?? "Service {$siteId}",
+                    'nom' => $request->input('nom', 'Service '.$siteId),
+                    'type' => $request->input('type', 'standard'),
+                    'status' => $request->input('status', 1),
                     'configuration' => $validatedData['configuration'],
                     'lignes' => $validatedData['lignes'] ?? [],
+                    'lignes_mobiles' => $validatedData['lignes_mobiles'] ?? [],
                     'services' => $validatedData['services'] ?? []
                 ]
             );
 
             DB::commit();
 
-            // Ajout de logging pour débogage
-            Log::info('Service mis à jour avec succès', [
-                'service_id' => $service->id,
-            ]);
-
             return response()->json([
                 'success' => true,
+                'message' => 'Services mis à jour avec succès',
                 'service' => $service
             ]);
 
@@ -128,16 +146,18 @@ class ServiceController extends Controller
             DB::rollBack();
             Log::error('Erreur mise à jour services', [
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
                 'client_id' => $client->id,
                 'site_id' => $siteId
             ]);
 
             return response()->json([
-                'message' => 'Erreur lors de la mise à jour des services'
+                'success' => false,
+                'message' => 'Erreur lors de la mise à jour des services',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
-
     private function validateServiceData(Request $request)
     {
         return $request->validate([

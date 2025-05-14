@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('services', function (Blueprint $table) {
-            $table->json('lignes_mobiles')->nullable()->after('lignes');
+        Schema::table('users', function (Blueprint $table) {
+            $table->boolean('is_admin')->default(false);
         });
     }
 
     public function down()
     {
-        Schema::table('services', function (Blueprint $table) {
-            $table->dropColumn('lignes_mobiles');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('is_admin');
         });
     }
 };

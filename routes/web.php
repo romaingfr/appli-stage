@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\PhoneTerminalController;
 use App\Http\Controllers\SiteController;
 use Illuminate\Support\Facades\Route;
 
@@ -85,3 +86,11 @@ Route::post('/clients/{client}/update-field', [ClientController::class, 'updateF
 Route::post('/clients/{client}/sites/{site}/update-field', [SiteController::class, 'updateField'])
     ->name('clients.sites.update-field')
     ->where('site', '[0-9]+|principal');
+
+Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->prefix('settings')->group(function () {    Route::get('/terminals', [App\Http\Controllers\Admin\TerminalController::class, 'index'])->name('terminals.index');
+    Route::get('/terminals/create', [App\Http\Controllers\Admin\TerminalController::class, 'create'])->name('terminals.create');
+    Route::post('/terminals', [App\Http\Controllers\Admin\TerminalController::class, 'store'])->name('terminals.store');
+    Route::get('/terminals/{terminal}/edit', [App\Http\Controllers\Admin\TerminalController::class, 'edit'])->name('terminals.edit');
+    Route::put('/terminals/{terminal}', [App\Http\Controllers\Admin\TerminalController::class, 'update'])->name('terminals.update');
+    Route::delete('/terminals/{terminal}', [App\Http\Controllers\Admin\TerminalController::class, 'destroy'])->name('terminals.destroy');
+});

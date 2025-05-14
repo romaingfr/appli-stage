@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PhoneTerminalController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SiteController;
 use Illuminate\Support\Facades\Route;
@@ -27,3 +28,12 @@ Route::middleware(['web', 'auth'])->group(function () {
         return redirect('/');
     });
 });
+
+Route::get('/api/terminals/search', [PhoneTerminalController::class, 'search'])->name('terminals.search');
+Route::get('/api/terminals/brands', [PhoneTerminalController::class, 'brands'])->name('terminals.brands');
+Route::get('/api/terminals/types', [PhoneTerminalController::class, 'types'])->name('terminals.types');
+
+Route::get('/api/terminals', function() {
+    return \App\Models\Terminal::select('id', 'model', 'serial_number')->get();
+});
+Route::get('/terminals', 'App\Http\Controllers\TerminalController@index');

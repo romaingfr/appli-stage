@@ -67,8 +67,7 @@ class ServiceController extends Controller
                 ['client_id' => $client->id, 'site_id' => null], // ou site_id => $siteId dans update()
                 [
                     'configuration' => $validatedData['configuration'],
-                    'lignes' => $validatedData['lignes'] ?? [],
-                    'lignes_mobiles' => $validatedData['lignes_mobiles'] ?? []
+                    'lignes' => $validatedData['lignes'] ?? []
                 ]
             );
 
@@ -106,9 +105,10 @@ class ServiceController extends Controller
                     'client_id' => $client->id
                 ],
                 [
+                    'nom' => $validatedData['nom'] ?? "Service {$siteId}",
                     'configuration' => $validatedData['configuration'],
                     'lignes' => $validatedData['lignes'] ?? [],
-                    'lignes_mobiles' => $validatedData['lignes_mobiles'] ?? []
+                    'services' => $validatedData['services'] ?? []
                 ]
             );
 
@@ -117,7 +117,6 @@ class ServiceController extends Controller
             // Ajout de logging pour débogage
             Log::info('Service mis à jour avec succès', [
                 'service_id' => $service->id,
-                'lignes_mobiles_count' => count($validatedData['lignes_mobiles'] ?? [])
             ]);
 
             return response()->json([
@@ -142,6 +141,8 @@ class ServiceController extends Controller
     private function validateServiceData(Request $request)
     {
         return $request->validate([
+            'client_id' => 'required|exists:clients,id',
+            'site_id' => 'required|exists:sites,id',
             'configuration' => 'required|array',
             'configuration.svi' => 'required|boolean',
             'configuration.channel_count' => 'required|integer|min:0',
@@ -152,16 +153,15 @@ class ServiceController extends Controller
             'lignes.*.nom' => 'nullable|string',
             'lignes.*.prenom' => 'nullable|string',
             'lignes.*.numero' => 'nullable|string',
+            'lignes.*.mobile' => 'nullable|string',
+            'lignes.*.marque' => 'nullable|string',
+            'lignes.*.type_terminal' => 'nullable|string',
+            'lignes.*.numero_serie' => 'nullable|string',
             'lignes.*.operateur' => 'nullable|string',
             'lignes.*.data' => 'nullable|string',
             'lignes.*.international' => 'boolean',
+            'lignes.*.option_facultative' => 'boolean',
             'lignes.*.sim' => 'nullable|string',
-            // Règles pour lignes_mobiles
-            'lignes_mobiles' => 'present|array',
-            'lignes_mobiles.*.numero' => 'nullable|string',
-            'lignes_mobiles.*.forfait' => 'nullable|string',
-            'lignes_mobiles.*.sim' => 'nullable|string',
-            'lignes_mobiles.*.date_activation' => 'nullable|date',
         ]);
     }
 

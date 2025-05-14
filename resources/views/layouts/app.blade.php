@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    @yield('styles')
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
@@ -253,6 +254,20 @@
                             <i class="fas fa-list me-1"></i>Clients
                         </a>
                     </li>
+
+                    @if(auth()->check() && auth()->user()->is_admin)
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="settingsDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-cog me-1"></i>Administration
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="settingsDropdown">
+                                <a class="dropdown-item" href="{{ route('terminals.index') }}">
+                                    <i class="fas fa-phone me-2"></i>Gestion des terminaux
+                                </a>
+                                <!-- Autres liens d'administration -->
+                            </div>
+                        </li>
+                    @endif
                 @endauth
             </ul>
 

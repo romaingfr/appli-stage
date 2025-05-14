@@ -9,15 +9,16 @@ class Service extends Model
     protected $fillable = [
         'client_id',
         'site_id',
+        'nom',           // Ajout de ce champ
         'configuration',
         'lignes',
-        'lignes_mobiles'
+        'services',      // Ajout de ce champ
     ];
 
     protected $casts = [
         'configuration' => 'array',
         'lignes' => 'array',
-        'lignes_mobiles' => 'array'
+        'services' => 'array', // Ajout de ce cast
     ];
 
     public function client()

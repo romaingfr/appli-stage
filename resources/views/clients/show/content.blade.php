@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('head')
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;500;600;700&display=swap" rel="stylesheet">
 @endsection
 
 @section('content')
@@ -344,17 +344,13 @@
                                                         <label class="form-check-label" for="svi">SVI</label>
                                                     </div>
 
-                                                    <div class="table-responsive">
+                                                    <div class="table-responsive-xl">
                                                         <table class="table table-bordered table-sm">
                                                             <thead class="bg-light">
                                                             <tr>
                                                                 <th>Nom</th>
                                                                 <th>Prénom</th>
-                                                                <th>Numéro de ligne</th>
-                                                                <th>Opérateur</th>
-                                                                <th>Data (Go)</th>
-                                                                <th>International</th>
-                                                                <th>N° Carte SIM</th>
+                                                                <th>Numéro</th>
                                                                 <th>Actions</th>
                                                             </tr>
                                                             </thead>
@@ -372,57 +368,96 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Modal pour ajouter une ligne téléphonique -->
-                                            <div class="modal fade" id="addPhoneLineModal" tabindex="-1" aria-labelledby="addPhoneLineModalLabel" aria-hidden="true">
-                                                <div class="modal-dialog">
+                                            <div class="modal fade" id="addPhoneLineModal" tabindex="-1">
+                                                <div class="modal-dialog modal-lg">
                                                     <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title" id="addPhoneLineModalLabel">Ajouter une ligne</h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        <div class="modal-header" style="background-color: #009FE3; color: white; font-family: 'Archivo Narrow', sans-serif;">
+                                                            <h5 class="modal-title" style="font-weight: 600;"><i class="fas fa-phone-alt me-2"></i>Ajouter une ligne téléphonique</h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
                                                         </div>
-                                                        <div class="modal-body">
+                                                        <div class="modal-body" style="font-family: 'Archivo Narrow', sans-serif;">
                                                             <form id="phoneLineForm">
-                                                                <div class="row">
-                                                                    <div class="col-md-6 mb-3">
-                                                                        <label for="lastName" class="form-label">Nom</label>
-                                                                        <input type="text" class="form-control form-control-sm" id="lastName">
+                                                                <div class="row mb-3">
+                                                                    <div class="col">
+                                                                        <label for="lastName" class="form-label fw-bold">Nom</label>
+                                                                        <input type="text" class="form-control" id="lastName">
                                                                     </div>
-                                                                    <div class="col-md-6 mb-3">
-                                                                        <label for="firstName" class="form-label">Prénom</label>
-                                                                        <input type="text" class="form-control form-control-sm" id="firstName">
+                                                                    <div class="col">
+                                                                        <label for="firstName" class="form-label fw-bold">Prénom</label>
+                                                                        <input type="text" class="form-control" id="firstName">
                                                                     </div>
                                                                 </div>
                                                                 <div class="mb-3">
-                                                                    <label for="phoneNumber" class="form-label">Numéro de ligne</label>
-                                                                    <input type="text" class="form-control form-control-sm" id="phoneNumber">
+                                                                    <label for="phoneNumber" class="form-label fw-bold">Numéro de téléphone</label>
+                                                                    <input type="tel" class="form-control" id="phoneNumber">
+                                                                </div>
+
+                                                                <hr class="my-4">
+                                                                <h6 class="mb-3 fw-bold text-primary"><i class="fas fa-mobile-alt me-2"></i>Informations du terminal</h6>
+
+                                                                <div class="row mb-3">
+                                                                    <div class="col">
+                                                                        <label for="brand" class="form-label fw-bold">Marque</label>
+                                                                        <input type="text" class="form-control" id="brand" list="brandList">
+                                                                        <datalist id="brandList">
+                                                                            <!-- Options chargées dynamiquement -->
+                                                                        </datalist>
+                                                                    </div>
+                                                                    <div class="col">
+                                                                        <label for="terminalType" class="form-label fw-bold">Modèle</label>
+                                                                        <input type="text" class="form-control" id="terminalType" list="terminalTypeList">
+                                                                        <datalist id="terminalTypeList">
+                                                                            <!-- Options chargées dynamiquement -->
+                                                                        </datalist>
+                                                                    </div>
                                                                 </div>
                                                                 <div class="mb-3">
-                                                                    <label for="operator" class="form-label">Opérateur</label>
-                                                                    <select class="form-select form-select-sm" id="operator">
-                                                                        <option value="">Sélectionner</option>
-                                                                        <option value="Orange">Orange</option>
-                                                                        <option value="SFR">SFR</option>
-                                                                        <option value="Bouygues">Bouygues</option>
-                                                                        <option value="Free">Free</option>
-                                                                    </select>
+                                                                    <label for="serialNumber" class="form-label">Numéro de série</label>
+                                                                    <input type="text" class="form-control" id="serialNumber" list="serialNumberList" autocomplete="off">
+                                                                    <datalist id="serialNumberList"></datalist>
+                                                                    <div class="form-text text-muted">Entrez le numéro de série pour remplir automatiquement la marque et le modèle</div>
+                                                                </div>
+
+                                                                <hr class="my-4">
+                                                                <h6 class="mb-3 fw-bold text-primary"><i class="fas fa-sim-card me-2"></i>Informations de la ligne</h6>
+
+                                                                <div class="row mb-3">
+                                                                    <div class="col">
+                                                                        <label for="operator" class="form-label fw-bold">Opérateur</label>
+                                                                        <input type="text" class="form-control" id="operator">
+                                                                    </div>
+                                                                    <div class="col">
+                                                                        <label for="dataAmount" class="form-label fw-bold">Data (Go)</label>
+                                                                        <input type="number" class="form-control" id="dataAmount" min="0">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row mb-3">
+                                                                    <div class="col">
+                                                                        <div class="form-check">
+                                                                            <input type="checkbox" class="form-check-input" id="internationalOption">
+                                                                            <label class="form-check-label" for="internationalOption">Option internationale</label>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col">
+                                                                        <div class="form-check">
+                                                                            <input type="checkbox" class="form-check-input" id="optionalFeature">
+                                                                            <label class="form-check-label" for="optionalFeature">Option facultative</label>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                                 <div class="mb-3">
-                                                                    <label for="dataAmount" class="form-label">Data (Go)</label>
-                                                                    <input type="number" class="form-control form-control-sm" id="dataAmount" min="0">
-                                                                </div>
-                                                                <div class="mb-3 form-check">
-                                                                    <input type="checkbox" class="form-check-input" id="internationalOption">
-                                                                    <label class="form-check-label" for="internationalOption">Option internationale</label>
-                                                                </div>
-                                                                <div class="mb-3">
-                                                                    <label for="simCardNumber" class="form-label">N° Carte SIM</label>
-                                                                    <input type="text" class="form-control form-control-sm" id="simCardNumber">
+                                                                    <label for="simCardNumber" class="form-label fw-bold">N° Carte SIM</label>
+                                                                    <input type="text" class="form-control" id="simCardNumber">
                                                                 </div>
                                                             </form>
                                                         </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annuler</button>
-                                                            <button type="button" class="btn btn-primary btn-sm" id="savePhoneLine">Enregistrer</button>
+                                                        <div class="modal-footer" style="font-family: 'Archivo Narrow', sans-serif;">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                                <i class="fas fa-times me-1"></i>Annuler
+                                                            </button>
+                                                            <button type="button" class="btn btn-primary" id="savePhoneLine" style="background-color: #009FE3; border-color: #009FE3;">
+                                                                <i class="fas fa-save me-1"></i>Ajouter
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -447,104 +482,6 @@
                                                     </div>
                                                     <div class="mb-3">
                                                         <input type="number" class="form-control" id="accessDebit" placeholder="Débit (Mb/s)">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="accordion-item">
-                                            <h2 class="accordion-header">
-                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mobileSection">
-                                                    <i class="fas fa-mobile-alt me-2"></i>Mobile
-                                                </button>
-                                            </h2>
-                                            <div id="mobileSection" class="accordion-collapse collapse" data-bs-parent="#mainAccordion">
-                                                <div class="accordion-body">
-                                                    <div class="form-check mb-3">
-                                                        <input type="checkbox" class="form-check-input" id="mobileService">
-                                                        <label class="form-check-label" for="mobileService">Service mobile</label>
-                                                    </div>
-
-                                                    <!-- APRÈS -->
-                                                    <div class="table-responsive" id="mobileLinesTable">                                                        <table class="table table-bordered table-sm">
-                                                            <thead class="bg-light">
-                                                            <tr>
-                                                                <th>Nom</th>
-                                                                <th>Prénom</th>
-                                                                <th>Numéro de ligne</th>
-                                                                <th>Opérateur</th>
-                                                                <th>Data (Go)</th>
-                                                                <th>International</th>
-                                                                <th>N° Carte SIM</th>
-                                                                <th>Actions</th>
-                                                            </tr>
-                                                            </thead>
-                                                            <tbody id="mobileLinesBody">
-                                                            <!-- Les lignes seront ajoutées ici dynamiquement -->
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-
-                                                    <div class="text-end mt-3">
-                                                        <button type="button" class="btn btn-primary btn-sm" id="addMobileLineBtn">
-                                                            <i class="fas fa-plus me-1"></i> Ajouter une ligne
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Modal pour ajouter une ligne mobile -->
-                                        <div class="modal fade" id="addMobileLineModal" tabindex="-1" aria-labelledby="addMobileLineModalLabel" aria-hidden="true">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title" id="addMobileLineModalLabel">Ajouter une ligne mobile</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <form id="mobileLineForm">
-                                                            <div class="row">
-                                                                <div class="col-md-6 mb-3">
-                                                                    <label for="mobileLastName" class="form-label">Nom</label>
-                                                                    <input type="text" class="form-control form-control-sm" id="mobileLastName">
-                                                                </div>
-                                                                <div class="col-md-6 mb-3">
-                                                                    <label for="mobileFirstName" class="form-label">Prénom</label>
-                                                                    <input type="text" class="form-control form-control-sm" id="mobileFirstName">
-                                                                </div>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label for="mobileNumber" class="form-label">Numéro de ligne</label>
-                                                                <input type="text" class="form-control form-control-sm" id="mobileNumber">
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label for="mobileOperator" class="form-label">Opérateur</label>
-                                                                <select class="form-select form-select-sm" id="mobileOperator">
-                                                                    <option value="">Sélectionner</option>
-                                                                    <option value="Orange">Orange</option>
-                                                                    <option value="SFR">SFR</option>
-                                                                    <option value="Bouygues">Bouygues</option>
-                                                                    <option value="Free">Free</option>
-                                                                </select>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label for="mobileDataAmount" class="form-label">Data (Go)</label>
-                                                                <input type="number" class="form-control form-control-sm" id="mobileDataAmount" min="0">
-                                                            </div>
-                                                            <div class="mb-3 form-check">
-                                                                <input type="checkbox" class="form-check-input" id="mobileInternationalOption">
-                                                                <label class="form-check-label" for="mobileInternationalOption">Option internationale</label>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label for="mobileSimCardNumber" class="form-label">N° Carte SIM</label>
-                                                                <input type="text" class="form-control form-control-sm" id="mobileSimCardNumber">
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annuler</button>
-                                                        <button type="button" class="btn btn-primary btn-sm" id="saveMobileLine">Enregistrer</button>
                                                     </div>
                                                 </div>
                                             </div>

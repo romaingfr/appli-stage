@@ -9,8 +9,13 @@ return new class extends Migration
     public function up()
     {
         Schema::table('services', function (Blueprint $table) {
-            $table->json('configuration')->nullable();
-            $table->json('lignes')->nullable();
+            if (!Schema::hasColumn('services', 'configuration')) {
+                $table->json('configuration')->nullable();
+            }
+
+            if (!Schema::hasColumn('services', 'lignes')) {
+                $table->json('lignes')->nullable();
+            }
         });
     }
 

@@ -62,11 +62,12 @@ class ServiceController extends Controller
 
             DB::beginTransaction();
 
+            // Modifier les méthodes storePrincipal et update :
             $service = Service::updateOrCreate(
-                ['client_id' => $client->id, 'site_id' => null],
+                ['client_id' => $client->id, 'site_id' => null], // ou site_id => $siteId dans update()
                 [
-                    'configuration' => json_encode($validatedData['configuration']),
-                    'lignes' => json_encode($validatedData['lignes'] ?? [])
+                    'configuration' => $validatedData['configuration'],
+                    'lignes' => $validatedData['lignes'] ?? []
                 ]
             );
 
@@ -93,15 +94,8 @@ class ServiceController extends Controller
     public function update(Request $request, Client $client, $siteId)
     {
         try {
-            $validatedData = $request->validate([
-                'configuration' => 'required|array',
-                'configuration.svi' => 'required|boolean',
-                'configuration.channel_count' => 'required|integer',
-                'configuration.cloud' => 'required|boolean',
-                'configuration.access_type' => 'required|string',
-                'configuration.debit' => 'required|string',
-                'lignes' => 'array'
-            ]);
+            // Utiliser validateServiceData au lieu de la validation personnalisée incomplète
+            $validatedData = $this->validateServiceData($request);
 
             DB::beginTransaction();
 
@@ -111,12 +105,19 @@ class ServiceController extends Controller
                     'client_id' => $client->id
                 ],
                 [
-                    'configuration' => json_encode($validatedData['configuration']),
-                    'lignes' => json_encode($validatedData['lignes'] ?? [])
+                    'nom' => $validatedData['nom'] ?? "Service {$siteId}",
+                    'configuration' => $validatedData['configuration'],
+                    'lignes' => $validatedData['lignes'] ?? [],
+                    'services' => $validatedData['services'] ?? []
                 ]
             );
 
             DB::commit();
+
+            // Ajout de logging pour débogage
+            Log::info('Service mis à jour avec succès', [
+                'service_id' => $service->id,
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -140,6 +141,8 @@ class ServiceController extends Controller
     private function validateServiceData(Request $request)
     {
         return $request->validate([
+            'client_id' => 'required|exists:clients,id',
+            'site_id' => 'required|exists:sites,id',
             'configuration' => 'required|array',
             'configuration.svi' => 'required|boolean',
             'configuration.channel_count' => 'required|integer|min:0',
@@ -150,10 +153,15 @@ class ServiceController extends Controller
             'lignes.*.nom' => 'nullable|string',
             'lignes.*.prenom' => 'nullable|string',
             'lignes.*.numero' => 'nullable|string',
+            'lignes.*.mobile' => 'nullable|string',
+            'lignes.*.marque' => 'nullable|string',
+            'lignes.*.type_terminal' => 'nullable|string',
+            'lignes.*.numero_serie' => 'nullable|string',
             'lignes.*.operateur' => 'nullable|string',
             'lignes.*.data' => 'nullable|string',
             'lignes.*.international' => 'boolean',
-            'lignes.*.sim' => 'nullable|string'
+            'lignes.*.option_facultative' => 'boolean',
+            'lignes.*.sim' => 'nullable|string',
         ]);
     }
 

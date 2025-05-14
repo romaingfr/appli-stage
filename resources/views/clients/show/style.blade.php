@@ -124,4 +124,44 @@
         box-shadow: var(--shadow) !important;
         transform: translateY(-1px) !important;
     }
+    .modal-content {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    #addPhoneLineModal .form-control {
+        border-radius: 6px;
+        border: 1px solid #e1e1e1;
+        padding: 0.75rem 1rem;
+        font-family: 'Archivo Narrow', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    #addPhoneLineModal .form-control:focus {
+        border-color: #009FE3;
+        box-shadow: 0 0 0 0.2rem rgba(0, 159, 227, 0.25);
+    }
+
+    #addPhoneLineModal .btn-primary {
+        background-color: #009FE3;
+        border-color: #009FE3;
+        font-weight: 500;
+        padding: 0.6rem 1.5rem;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 159, 227, 0.2);
+    }
+
+    #addPhoneLineModal .btn-primary:hover {
+        background-color: #0080B3;
+        border-color: #0080B3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 159, 227, 0.3);
+    }
+
+    #addPhoneLineModal .form-check-input:checked {
+        background-color: #009FE3;
+        border-color: #009FE3;
+    }
 </style>

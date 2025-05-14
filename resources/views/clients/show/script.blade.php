@@ -104,112 +104,209 @@
         // Afficher les détails dans une modal
         showPhoneLineDetails(line);
     }
+
     function showPhoneLineDetails(line) {
+        console.log("Affichage des détails de la ligne:", line);
+
+        // Déterminer le format de données (français ou anglais)
+        const isFrenchFormat = 'nom' in line || 'prenom' in line;
+        const isEnglishFormat = 'lastName' in line || 'firstName' in line;
+
+        // Récupérer les valeurs en fonction du format
+        const nom = isFrenchFormat ? line.nom : (isEnglishFormat ? line.lastName : '-');
+        const prenom = isFrenchFormat ? line.prenom : (isEnglishFormat ? line.firstName : '-');
+        const numero = isFrenchFormat ? line.numero : (isEnglishFormat ? line.phoneNumber : '-');
+        const mobile = isFrenchFormat ? (line.mobile || '-') : (isEnglishFormat ? (line.mobileNumber || '-') : '-');
+        const marque = isFrenchFormat ? (line.marque || '-') : (isEnglishFormat ? (line.brand || '-') : '-');
+        const typeTerminal = isFrenchFormat ? (line.type_terminal || '-') : (isEnglishFormat ? (line.terminalType || '-') : '-');
+        const numeroSerie = isFrenchFormat ? (line.numero_serie || '-') : (isEnglishFormat ? (line.serialNumber || '-') : '-');
+        const operateur = isFrenchFormat ? (line.operateur || '-') : (isEnglishFormat ? (line.operator || '-') : '-');
+        const data = isFrenchFormat ? (line.data || '-') : (isEnglishFormat ? (line.dataAmount || '-') : '-');
+        const international = isFrenchFormat ? line.international : (isEnglishFormat ? line.internationalOption : false);
+        const optionFacultative = isFrenchFormat ? line.option_facultative : (isEnglishFormat ? line.optionalFeature : false);
+        const sim = isFrenchFormat ? (line.sim || '-') : (isEnglishFormat ? (line.simCardNumber || '-') : '-');
+
         // Créer la modal si elle n'existe pas
         let modal = document.getElementById('phoneLineDetailsModal');
         if (!modal) {
             const modalHTML = `
-        <div class="modal fade" id="phoneLineDetailsModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Détails de la ligne</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body" id="phoneLineDetailsContent">
-                        <!-- Le contenu sera inséré dynamiquement -->
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                        <button type="button" class="btn btn-primary" id="editPhoneLineBtn">Modifier</button>
-                    </div>
-                </div>
+<div class="modal fade" id="phoneLineDetailsModal" tabindex="-1" aria-labelledby="phoneLineDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #009FE3; color: white;">
+                <h5 class="modal-title" id="phoneLineDetailsModalLabel">Détails de la ligne téléphonique</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
             </div>
-        </div>`;
+            <div class="modal-body">
+                <div id="phoneLineDetailsContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                <button type="button" class="btn btn-primary" id="editPhoneLineBtn">
+                    <i class="fas fa-edit me-1"></i>Modifier
+                </button>
+            </div>
+        </div>
+    </div>
+</div>`;
 
             document.body.insertAdjacentHTML('beforeend', modalHTML);
             modal = document.getElementById('phoneLineDetailsModal');
-
-            // Ajouter gestionnaire pour le bouton de modification
-            document.getElementById('editPhoneLineBtn').addEventListener('click', function() {
-                // Fermer la modal de détails
-                bootstrap.Modal.getInstance(modal).hide();
-
-                // Ouvrir la modal d'édition avec les données pré-remplies
-                openEditPhoneLineModal(line);
-            });
         }
 
-        // Remplir la modal avec les détails
+        // Remplir la modal avec les détails de la ligne
         const content = document.getElementById('phoneLineDetailsContent');
+        if (!content) {
+            console.error("Élément #phoneLineDetailsContent introuvable");
+            return;
+        }
+
         content.innerHTML = `
-    <table class="table table-striped">
-        <tr><th>Nom</th><td>${line.lastName || '-'}</td></tr>
-        <tr><th>Prénom</th><td>${line.firstName || '-'}</td></tr>
-        <tr><th>Numéro</th><td>${line.phoneNumber || '-'}</td></tr>
-        <tr><th>Mobile</th><td>${line.mobileNumber || '-'}</td></tr>
-        <tr><th>Marque</th><td>${line.brand || '-'}</td></tr>
-        <tr><th>Type de terminal</th><td>${line.terminalType || '-'}</td></tr>
-        <tr><th>N° série</th><td>${line.serialNumber || '-'}</td></tr>
-        <tr><th>Opérateur</th><td>${line.operator || '-'}</td></tr>
-        <tr><th>Data</th><td>${line.dataAmount ? line.dataAmount + ' Go' : '-'}</td></tr>
-        <tr><th>Option internationale</th><td>${line.internationalOption ? 'Oui' : 'Non'}</td></tr>
-        <tr><th>Option facultative</th><td>${line.optionalFeature ? 'Oui' : 'Non'}</td></tr>
-        <tr><th>N° Carte SIM</th><td>${line.simCardNumber || '-'}</td></tr>
-    </table>`;
+<table class="table table-striped">
+    <tr><th>Nom</th><td>${nom}</td></tr>
+    <tr><th>Prénom</th><td>${prenom}</td></tr>
+    <tr><th>Numéro</th><td>${numero}</td></tr>
+    <tr><th>Mobile</th><td>${mobile}</td></tr>
+    <tr><th>Marque</th><td>${marque}</td></tr>
+    <tr><th>Type de terminal</th><td>${typeTerminal}</td></tr>
+    <tr><th>N° série</th><td>${numeroSerie}</td></tr>
+    <tr><th>Opérateur</th><td>${operateur}</td></tr>
+    <tr><th>Data</th><td>${data !== '-' ? data + ' Go' : '-'}</td></tr>
+    <tr><th>Option internationale</th><td>${international ? 'Oui' : 'Non'}</td></tr>
+    <tr><th>Option facultative</th><td>${optionFacultative ? 'Oui' : 'Non'}</td></tr>
+    <tr><th>N° Carte SIM</th><td>${sim}</td></tr>
+</table>`;
 
         // Afficher la modal
         const bsModal = new bootstrap.Modal(modal);
         bsModal.show();
+
+        // Configurer le bouton d'édition
+        const editButton = document.getElementById('editPhoneLineBtn');
+        if (editButton) {
+            const newEditButton = editButton.cloneNode(true);
+            editButton.parentNode.replaceChild(newEditButton, editButton);
+
+            newEditButton.addEventListener('click', function() {
+                bootstrap.Modal.getInstance(modal).hide();
+                openEditPhoneLineModal(line);
+            });
+        }
     }
 
     // Fonction pour pré-remplir et ouvrir la modal d'édition
     function openEditPhoneLineModal(line) {
-        const modal = document.getElementById('addPhoneLineModal');
-        if (!modal) return;
+        // Déterminer le format de données (français ou anglais)
+        const isFrenchFormat = 'nom' in line || 'prenom' in line;
+        const isEnglishFormat = 'lastName' in line || 'firstName' in line;
 
-        // Remplir le formulaire avec les données
-        document.getElementById('lastName').value = line.lastName || '';
-        document.getElementById('firstName').value = line.firstName || '';
-        document.getElementById('phoneNumber').value = line.phoneNumber || '';
+        // Récupérer ou créer la modal d'édition
+        let modal = document.getElementById('editPhoneLineModal');
+        if (!modal) {
+            // Cloner la modal d'ajout pour créer celle d'édition
+            const addModal = document.getElementById('addPhoneLineModal');
+            if (!addModal) {
+                console.error("Modal d'ajout introuvable");
+                return;
+            }
 
-        // Autres champs si disponibles
-        if (document.getElementById('mobileNumber'))
-            document.getElementById('mobileNumber').value = line.mobileNumber || '';
-        if (document.getElementById('brand'))
-            document.getElementById('brand').value = line.brand || '';
-        if (document.getElementById('terminalType'))
-            document.getElementById('terminalType').value = line.terminalType || '';
-        if (document.getElementById('serialNumber'))
-            document.getElementById('serialNumber').value = line.serialNumber || '';
-        if (document.getElementById('operator'))
-            document.getElementById('operator').value = line.operator || '';
-        if (document.getElementById('dataAmount'))
-            document.getElementById('dataAmount').value = line.dataAmount || '';
-        if (document.getElementById('internationalOption'))
-            document.getElementById('internationalOption').checked = line.internationalOption || false;
-        if (document.getElementById('optionalFeature'))
-            document.getElementById('optionalFeature').checked = line.optionalFeature || false;
-        if (document.getElementById('simCardNumber'))
-            document.getElementById('simCardNumber').value = line.simCardNumber || '';
+            const modalClone = addModal.cloneNode(true);
+            modalClone.id = 'editPhoneLineModal';
+            modalClone.querySelector('.modal-title').textContent = 'Modifier une ligne téléphonique';
 
-        // Modifier le bouton de sauvegarde pour faire une mise à jour
-        const saveButton = document.getElementById('savePhoneLine');
-        saveButton.textContent = 'Mettre à jour';
-        saveButton.setAttribute('data-id', line.id);
-        saveButton.onclick = function() {
-            updatePhoneLine(line.id);
-        };
+            // Changer l'ID du formulaire
+            const form = modalClone.querySelector('form');
+            if (form) form.id = 'editPhoneLineForm';
+
+            // Changer le bouton de sauvegarde
+            const saveBtn = modalClone.querySelector('#savePhoneLine');
+            if (saveBtn) {
+                saveBtn.id = 'updatePhoneLine';
+                saveBtn.textContent = 'Enregistrer les modifications';
+                saveBtn.innerHTML = '<i class="fas fa-save me-1"></i>Enregistrer les modifications';
+            }
+
+            document.body.appendChild(modalClone);
+            modal = document.getElementById('editPhoneLineModal');
+
+            // Ajouter l'ID caché pour le suivi
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.id = 'editLineId';
+            modalClone.querySelector('form').appendChild(hiddenInput);
+        }
+
+        // Stocker l'ID de la ligne pour la mise à jour
+        const lineId = line.id;
+        document.getElementById('editLineId').value = lineId;
+
+        // Pré-remplir les champs
+        document.getElementById('editPhoneLineModal').querySelector('#lastName').value =
+            isFrenchFormat ? line.nom : (isEnglishFormat ? line.lastName : '');
+
+        document.getElementById('editPhoneLineModal').querySelector('#firstName').value =
+            isFrenchFormat ? line.prenom : (isEnglishFormat ? line.firstName : '');
+
+        document.getElementById('editPhoneLineModal').querySelector('#phoneNumber').value =
+            isFrenchFormat ? line.numero : (isEnglishFormat ? line.phoneNumber : '');
+
+        document.getElementById('editPhoneLineModal').querySelector('#mobileNumber').value =
+            isFrenchFormat ? (line.mobile || '') : (isEnglishFormat ? (line.mobileNumber || '') : '');
+
+        document.getElementById('editPhoneLineModal').querySelector('#brand').value =
+            isFrenchFormat ? (line.marque || '') : (isEnglishFormat ? (line.brand || '') : '');
+
+        document.getElementById('editPhoneLineModal').querySelector('#terminalType').value =
+            isFrenchFormat ? (line.type_terminal || '') : (isEnglishFormat ? (line.terminalType || '') : '');
+
+        document.getElementById('editPhoneLineModal').querySelector('#serialNumber').value =
+            isFrenchFormat ? (line.numero_serie || '') : (isEnglishFormat ? (line.serialNumber || '') : '');
+
+        document.getElementById('editPhoneLineModal').querySelector('#operator').value =
+            isFrenchFormat ? (line.operateur || '') : (isEnglishFormat ? (line.operator || '') : '');
+
+        document.getElementById('editPhoneLineModal').querySelector('#dataAmount').value =
+            isFrenchFormat ? (line.data || '') : (isEnglishFormat ? (line.dataAmount || '') : '');
+
+        document.getElementById('editPhoneLineModal').querySelector('#internationalOption').checked =
+            isFrenchFormat ? !!line.international : (isEnglishFormat ? !!line.internationalOption : false);
+
+        document.getElementById('editPhoneLineModal').querySelector('#optionalFeature').checked =
+            isFrenchFormat ? !!line.option_facultative : (isEnglishFormat ? !!line.optionalFeature : false);
+
+        document.getElementById('editPhoneLineModal').querySelector('#simCardNumber').value =
+            isFrenchFormat ? (line.sim || '') : (isEnglishFormat ? (line.simCardNumber || '') : '');
+
+        // Configurer le bouton de mise à jour
+        const updateBtn = document.getElementById('updatePhoneLine');
+        if (updateBtn) {
+            const newUpdateBtn = updateBtn.cloneNode(true);
+            updateBtn.parentNode.replaceChild(newUpdateBtn, updateBtn);
+
+            newUpdateBtn.addEventListener('click', function() {
+                updatePhoneLine(lineId);
+            });
+        }
 
         // Afficher la modal
         const bsModal = new bootstrap.Modal(modal);
         bsModal.show();
     }
+
     function updatePhoneLine(lineId) {
         // Récupérer les données du formulaire
-        const lastName = document.getElementById('lastName').value;
-        const firstName = document.getElementById('firstName').value;
-        const phoneNumber = document.getElementById('phoneNumber').value;
+        const lastName = document.getElementById('editPhoneLineModal').querySelector('#lastName').value;
+        const firstName = document.getElementById('editPhoneLineModal').querySelector('#firstName').value;
+        const phoneNumber = document.getElementById('editPhoneLineModal').querySelector('#phoneNumber').value;
+        const mobileNumber = document.getElementById('editPhoneLineModal').querySelector('#mobileNumber').value || '';
+        const brand = document.getElementById('editPhoneLineModal').querySelector('#brand').value || '';
+        const terminalType = document.getElementById('editPhoneLineModal').querySelector('#terminalType').value || '';
+        const serialNumber = document.getElementById('editPhoneLineModal').querySelector('#serialNumber').value || '';
+        const operator = document.getElementById('editPhoneLineModal').querySelector('#operator').value || '';
+        const dataAmount = document.getElementById('editPhoneLineModal').querySelector('#dataAmount').value || '';
+        const internationalOption = document.getElementById('editPhoneLineModal').querySelector('#internationalOption').checked;
+        const optionalFeature = document.getElementById('editPhoneLineModal').querySelector('#optionalFeature').checked;
+        const simCardNumber = document.getElementById('editPhoneLineModal').querySelector('#simCardNumber').value || '';
 
         // Vérifier les données minimales
         if (!lastName && !firstName && !phoneNumber) {
@@ -223,43 +320,59 @@
             lastName: lastName,
             firstName: firstName,
             phoneNumber: phoneNumber,
-            mobileNumber: document.getElementById('mobileNumber')?.value || '',
-            brand: document.getElementById('brand')?.value || '',
-            terminalType: document.getElementById('terminalType')?.value || '',
-            serialNumber: document.getElementById('serialNumber')?.value || '',
-            operator: document.getElementById('operator')?.value || '',
-            dataAmount: document.getElementById('dataAmount')?.value || '',
-            internationalOption: document.getElementById('internationalOption')?.checked || false,
-            optionalFeature: document.getElementById('optionalFeature')?.checked || false,
-            simCardNumber: document.getElementById('simCardNumber')?.value || ''
+            mobileNumber: mobileNumber,
+            brand: brand,
+            terminalType: terminalType,
+            serialNumber: serialNumber,
+            operator: operator,
+            dataAmount: dataAmount,
+            internationalOption: internationalOption,
+            optionalFeature: optionalFeature,
+            simCardNumber: simCardNumber
         };
 
-        // Mettre à jour le tableau
+        // Trouver l'index de la ligne dans le tableau
         const index = phoneLines.findIndex(line => line.id === lineId);
-        if (index !== -1) {
-            phoneLines[index] = updatedLine;
+        if (index === -1) {
+            console.error("Ligne non trouvée:", lineId);
+            return;
         }
 
-        // Mettre à jour l'affichage
-        updatePhoneLinesTable();
+        // Mettre à jour la ligne
+        phoneLines[index] = updatedLine;
+
+        // Rafraîchir l'affichage des lignes
+        renderPhoneLines();
 
         // Fermer la modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('addPhoneLineModal'));
-        if (modal) {
-            modal.hide();
-        }
+        const modal = document.getElementById('editPhoneLineModal');
+        const bsModal = bootstrap.Modal.getInstance(modal);
+        bsModal.hide();
 
-        // Réinitialiser le formulaire et le bouton
-        document.getElementById('phoneLineForm').reset();
-        const saveButton = document.getElementById('savePhoneLine');
-        saveButton.textContent = 'Enregistrer';
-        saveButton.removeAttribute('data-id');
-        saveButton.onclick = addPhoneLine;
-
-        // Sauvegarder les changements
-        saveServices();
+        // Notification de succès
+        alert('Ligne téléphonique mise à jour avec succès');
     }
 
+
+    // Fonction de diagnostic pour tracer l'état des lignes téléphoniques
+    function debugPhoneLines() {
+        console.log("=== ÉTAT DES LIGNES TÉLÉPHONIQUES ===");
+        console.log("Nombre de lignes:", phoneLines ? phoneLines.length : 0);
+        console.log("Format des données:", phoneLines && phoneLines.length > 0 ?
+            ('nom' in phoneLines[0] ? "français" : "anglais") : "inconnu");
+        console.log("Lignes:", phoneLines);
+    }
+
+    // Appeler cette fonction au chargement de la page
+    document.addEventListener('DOMContentLoaded', function() {
+        // Autres initialisations...
+
+        // Diagnostic
+        debugPhoneLines();
+
+        // Log pour confirmation que le script est bien chargé
+        console.log("Script de gestion des lignes téléphoniques chargé");
+    });
     // Modifier la fonction updatePhoneLinesTable pour ajouter les gestionnaires de clic
     const originalUpdatePhoneLinesTable = updatePhoneLinesTable;
     updatePhoneLinesTable = function() {

@@ -1531,11 +1531,6 @@
             <label class="form-check-label" for="svi">SVI</label>
         </div>
 
-        <div class="mb-3">
-            <label for="channelCount" class="form-label">Nombre de canaux</label>
-            <input type="number" class="form-control form-control-sm" id="channelCount" min="0">
-        </div>
-
         <div class="table-responsive">
             <table class="table table-bordered table-sm">
                 <thead class="bg-light">
@@ -1547,7 +1542,6 @@
                 </tr>
                 </thead>
                 <tbody id="phoneLinesBody">
-                <!-- Les lignes seront ajoutées ici dynamiquement -->
                 </tbody>
             </table>
         </div>
@@ -1673,53 +1667,6 @@
         document.getElementById('savePhoneLine').addEventListener('click', addPhoneLine);
     }
 
-    function updateTelephonyHostedSection() {
-        const section = document.getElementById('telephonyHostedSection');
-        if (!section) return;
-
-        section.querySelector('.accordion-body').innerHTML = `
-        <div class="form-check mb-3">
-            <input type="checkbox" class="form-check-input" id="svi">
-            <label class="form-check-label" for="svi">SVI</label>
-        </div>
-
-        <div class="table-responsive">
-            <table class="table table-bordered table-sm">
-                <thead class="bg-light">
-                <tr>
-                    <th>Nom</th>
-                    <th>Prénom</th>
-                    <th>Numéro de ligne</th>
-                    <th>Opérateur</th>
-                    <th>Data (Go)</th>
-                    <th>International</th>
-                    <th>N° Carte SIM</th>
-                    <th>Actions</th>
-                </tr>
-                </thead>
-                <tbody id="phoneLinesBody">
-                <!-- Les lignes seront ajoutées ici dynamiquement -->
-                </tbody>
-            </table>
-        </div>
-
-        <div class="text-end mt-3">
-            <button type="button" class="btn btn-primary btn-sm" id="addPhoneLineBtn">
-                <i class="fas fa-plus me-1"></i> Ajouter une ligne
-            </button>
-        </div>
-    `;
-
-        // Assurer l'existence d'une seule modal
-        setupPhoneLineModal();
-
-        // Ajouter l'événement au bouton d'ajout
-        document.getElementById('addPhoneLineBtn').addEventListener('click', function() {
-            const modal = new bootstrap.Modal(document.getElementById('addPhoneLineModal'));
-            modal.show();
-        });
-    }
-
 
     // Fonction pour s'assurer que la modal de ligne téléphonique existe sans la dupliquer
     function ensurePhoneLineModal() {
@@ -1736,7 +1683,6 @@
                     </div>
                     <div class="modal-body">
                         <form id="phoneLineForm">
-                            <!-- Vos champs de formulaire existants -->
                         </form>
                     </div>
                     <div class="modal-footer">
